@@ -1,0 +1,1 @@
+This project is an implementation of memory cash database, like reddis, using hash tables and binary tree structures for node (directories) and leafs (files).

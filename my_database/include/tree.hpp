@@ -6,18 +6,14 @@
 #include <vector>
 
 enum class Tag : unsigned char {
-  Root = 1, /* 00 01*/
-  Node = 2, /* 00 10*/
-  Leaf = 4, /* 01 00*/
+    Root = 1, /* 00 01*/
+    Node = 2, /* 00 10*/
+    Leaf = 4, /* 01 00*/
 };
 
 inline constexpr Tag operator|(Tag a, Tag b) {
-  return static_cast<Tag>(static_cast<unsigned char>(a) | static_cast<unsigned char>(b));
+    return static_cast<Tag>(static_cast<unsigned char>(a) | static_cast<unsigned char>(b));
 }
-
-using int32 = unsigned int;
-using int16 = unsigned short;
-using int8 = unsigned char;
 
 /*
 The binary tree stracture is this:
@@ -42,23 +38,19 @@ using Node = struct s_node;
 using Leaf = struct s_leaf;
 
 struct s_node {
-  Tag tag;
-  std::weak_ptr<s_node> parent;  // To prevent cycles of owning 
-  std::shared_ptr<s_node> west;
-  std::shared_ptr<s_leaf> east;
-  std::string path;
+    Tag tag;
+    std::weak_ptr<s_node> parent;  // To prevent cycles of owning
+    std::shared_ptr<s_node> west;
+    std::shared_ptr<s_leaf> east;
+    std::string path;
 };
 
 struct s_leaf {
-  Tag tag;
-  std::variant<std::weak_ptr<s_node>, std::weak_ptr<s_leaf>> parent;
-  std::shared_ptr<s_leaf> north;
-  std::shared_ptr<s_leaf> east;
-  std::string path;
+    Tag tag;
+    std::variant<std::weak_ptr<s_node>, std::weak_ptr<s_leaf>> parent;
+    std::shared_ptr<s_leaf> west;
+    std::shared_ptr<s_leaf> east;
+    std::string path;
 
-   std::string value;
-  // int8* value;  // We could have a big JSON stracture, which requires a lot of memory (allocate
-  // in
-  //               // heap)
-  // int16 size;   // size of the value information;
+    std::string value;
 };

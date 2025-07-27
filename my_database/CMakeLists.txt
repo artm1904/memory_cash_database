@@ -6,6 +6,8 @@ set(EXE_NAME executable)
 
 add_executable(${EXE_NAME}
     source/tree.cpp
+    source/server.cpp
+
 )
 
 

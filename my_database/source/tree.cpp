@@ -90,31 +90,31 @@ std::shared_ptr<Leaf> create_leaf(const std::shared_ptr<Node> &parent, std::stri
     return new_leaf;
 }
 
-int main() {
-    auto root = create_root_node();
-    std::cout << "Корневой узел создан по адресу: " << root.get() << std::endl;
-    std::cout << "Путь корневого узла: " << root->path << std::endl;
+// int main() {
+//     auto root = create_root_node();
+//     std::cout << "Корневой узел создан по адресу: " << root.get() << std::endl;
+//     std::cout << "Путь корневого узла: " << root->path << std::endl;
 
-    auto users_node = create_node(root, "/Users");
-    std::cout << "Создан дочерний узел '" << users_node->path << "'" << std::endl;
+//     auto users_node = create_node(root, "/Users");
+//     std::cout << "Создан дочерний узел '" << users_node->path << "'" << std::endl;
 
-    // Безопасный доступ к родительскому узлу через weak_ptr
-    if (auto parent_ptr = users_node->parent.lock()) {
-        // Этот блок выполнится, только если родительский узел все еще существует
-        std::cout << "Родительский узел: " << parent_ptr->path << std::endl;
-    } else {
-        std::cout << "Родительский узел был удален." << std::endl;
-    }
+//     // Безопасный доступ к родительскому узлу через weak_ptr
+//     if (auto parent_ptr = users_node->parent.lock()) {
+//         // Этот блок выполнится, только если родительский узел все еще существует
+//         std::cout << "Родительский узел: " << parent_ptr->path << std::endl;
+//     } else {
+//         std::cout << "Родительский узел был удален." << std::endl;
+//     }
 
-    // Демонстрация добавления листьев
-    auto bob_leaf = create_leaf(users_node, "bob", "bob_data");
-    auto kate_leaf = create_leaf(users_node, "kate", "kate_data");
+//     // Демонстрация добавления листьев
+//     auto bob_leaf = create_leaf(users_node, "bob", "bob_data");
+//     auto kate_leaf = create_leaf(users_node, "kate", "kate_data");
 
-    std::cout << "\nЛистья в узле '" << users_node->path << "':" << std::endl;
-    auto current_leaf = users_node->east;
-    while (current_leaf) {
-        std::cout << "  - " << current_leaf->path << std::endl;
-        current_leaf = current_leaf->east;
-    }
-    return 0;
-}
+//     std::cout << "\nЛистья в узле '" << users_node->path << "':" << std::endl;
+//     auto current_leaf = users_node->east;
+//     while (current_leaf) {
+//         std::cout << "  - " << current_leaf->path << std::endl;
+//         current_leaf = current_leaf->east;
+//     }
+//     return 0;
+// }

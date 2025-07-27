@@ -1,20 +1,23 @@
 #include <cassert>
-
-#include <stdio.h>
+#include <iostream>
+#include <memory>
+#include <string>
 #include <variant>
+#include <vector>
 
+enum class Tag : unsigned char {
+  Root = 1, /* 00 01*/
+  Node = 2, /* 00 10*/
+  Leaf = 4, /* 01 00*/
+};
 
-#define TagRoot 1 /* 00 01*/
-#define TagNode 2 /* 00 10*/
-#define TagLeaf 4 /* 01 00*/
-
-
+inline constexpr Tag operator|(Tag a, Tag b) {
+  return static_cast<Tag>(static_cast<unsigned char>(a) | static_cast<unsigned char>(b));
+}
 
 using int32 = unsigned int;
 using int16 = unsigned short;
 using int8 = unsigned char;
-using Tag = unsigned char;
-
 
 /*
 The binary tree stracture is this:
@@ -35,27 +38,27 @@ The binary tree stracture is this:
 // Forward declarations to resolve circular dependency between Node and Leaf
 struct s_node;
 struct s_leaf;
-
-struct s_node {
-    Tag tag;
-  struct s_node* north;
-  struct s_node* west;
-  struct s_leaf* east;
-  int8 path[256];
-};
-
 using Node = struct s_node;
-
-struct s_leaf {
-    Tag tag;
-  std::variant<s_node*, s_leaf*> west;
-  struct s_leaf* north;
-  struct s_leaf* east;
-  int8 path[256];
-  int8* value;  // We could have a big JSON stracture, which requires a lot of memory (allocate in
-                // heap)
-  int16 size;   // size of the value information;
-};
-
 using Leaf = struct s_leaf;
 
+struct s_node {
+  Tag tag;
+  std::weak_ptr<s_node> parent;  // To prevent cycles of owning 
+  std::shared_ptr<s_node> west;
+  std::shared_ptr<s_leaf> east;
+  std::string path;
+};
+
+struct s_leaf {
+  Tag tag;
+  std::variant<std::weak_ptr<s_node>, std::weak_ptr<s_leaf>> parent;
+  std::shared_ptr<s_leaf> north;
+  std::shared_ptr<s_leaf> east;
+  std::string path;
+
+   std::string value;
+  // int8* value;  // We could have a big JSON stracture, which requires a lot of memory (allocate
+  // in
+  //               // heap)
+  // int16 size;   // size of the value information;
+};

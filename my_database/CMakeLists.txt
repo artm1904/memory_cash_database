@@ -1,23 +1,35 @@
 cmake_minimum_required(VERSION 3.10)
 
 
-set(EXE_NAME executable)
+# Этот файл определяет два "таргета" (цели сборки):
+# 1. binary_tree - статическая библиотека с вашей структурой данных.
+# 2. database_server - исполняемый файл сервера.
 
-
-add_executable(${EXE_NAME}
+# Библиотека, содержащая только логику дерева.
+add_library(binary_tree
     source/tree.cpp
+)
+
+# Делаем заголовочные файлы библиотеки доступными для других таргетов.
+target_include_directories(binary_tree
+    PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+add_executable(database_server
     source/server.cpp
-
 )
 
-
-target_include_directories(${EXE_NAME}
+target_include_directories(database_server
     PRIVATE
-    include/
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
+
+target_link_libraries(database_server PRIVATE binary_tree)
 
 
 # Применяем флаги компиляции, которые мы определили в родительском CMakeLists.txt
-target_compile_options(${EXE_NAME} PRIVATE ${PROJECT_COMPILE_OPTIONS})
+target_compile_options(database_server  PRIVATE ${PROJECT_COMPILE_OPTIONS})
+target_compile_options(binary_tree  PRIVATE ${PROJECT_COMPILE_OPTIONS})
 
 

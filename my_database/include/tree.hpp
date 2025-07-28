@@ -7,9 +7,6 @@
 #include <variant>
 #include <vector>
 
-
-
-
 enum class Tag : unsigned char {
     Root = 1, /* 00 01*/
     Node = 2, /* 00 10*/
@@ -59,3 +56,9 @@ struct s_leaf {
 
     std::string value;
 };
+
+std::shared_ptr<Node> create_root_node();
+std::shared_ptr<Node> create_node(const std::shared_ptr<Node> &parent, std::string path);
+std::shared_ptr<Leaf> find_last_linear(const std::shared_ptr<Node> &parent);
+std::shared_ptr<Leaf> create_leaf(const std::shared_ptr<Node> &parent, std::string path,
+                                  std::string value);

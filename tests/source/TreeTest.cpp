@@ -35,7 +35,8 @@ TEST_F(TreeTest, ChildNodeCreation) {
     // Проверяем связь родитель-потомок
     ASSERT_FALSE(users_node->parent.expired());
     EXPECT_EQ(users_node->parent.lock(), root);
-    EXPECT_EQ(root->west, users_node);
+    ASSERT_EQ(root->childs.size(), 1);
+    EXPECT_EQ(root->childs[0], users_node);
 }
 
 TEST_F(TreeTest, SingleLeafCreation) {
@@ -70,6 +71,15 @@ TEST_F(TreeTest, MultipleLeafCreationAndTraversal) {
     ASSERT_EQ(kate_leaf->west, bob_leaf);
     EXPECT_EQ(kate_leaf->east, nullptr);  // kate - последний элемент
     EXPECT_EQ(bob_leaf->west, nullptr);   // bob - первый элемент
+}
+
+
+TEST_F(TreeTest, PrintTree) {
+    auto users_node = create_node(root, "/Users");
+    auto bob_leaf = create_leaf(users_node, "/Users/bob", "bob_data");
+    auto kate_leaf = create_leaf(users_node, "/Users/kate", "kate_data");
+
+    print_tree(root);
 }
 
 }  // namespace database_test

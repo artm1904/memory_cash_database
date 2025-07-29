@@ -5,12 +5,17 @@
 #include <sys/socket.h>
 #include <unistd.h>  // For close()
 
+#include <cstring>  // For memset
 #include <iostream>
 #include <memory>
-#include <string>
+#include <sstream>  // For std::stringstream
+#include <string>   // For strcspn
+#include <thread>   // For std::thread
+#include <vector>
 
-#define PORT 12003
-#define HOST "127.0.0.1"
+#define PORT 12004
+// #define HOST "127.0.0.1"
+#define HOST "192.168.31.28"
 
 struct s_client {
     int client_fd;
@@ -20,6 +25,16 @@ struct s_client {
 };
 
 using Client = struct s_client;
+
+using Callback = int (*)(std::shared_ptr<Client> client, std::string path, std::string value);
+
+struct s_command_handler {
+    std::string command;
+    Callback callback;
+};
+
+using CommandHandler = struct s_command_handler;
+
 
 
 /**
@@ -47,3 +62,10 @@ void accept_connection(int sock_fd);
  * @param client Умный указатель на структуру с информацией о клиенте.
  */
 void handle_connection(std::shared_ptr<Client> client);
+
+
+
+
+int handle_hello(std::shared_ptr<Client> client, std::string path, std::string value);
+
+std::vector<CommandHandler> commands_handlers = {{"hello", handle_hello}};

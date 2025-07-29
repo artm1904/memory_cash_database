@@ -1,13 +1,23 @@
 #include "server.hpp"
 
-#include <string.h>  // For strcspn
-#include <thread>    // Для std::thread
- 
-#include <cstring>  // For memset
-#include <sstream>  // For std::stringstream
 bool server_continue;
-bool child_continue;
 
+Callback get_callback(std::string command) {
+    Callback callback = nullptr;
+    for (const auto &handler : commands_handlers) {
+        if (handler.command == command) {
+            callback = handler.callback;
+            break;
+        }
+    }
+
+    if (!callback) {
+        return nullptr;
+    }
+    return callback;
+}
+
+/*------------------------------------HEADER_FUNCTION_IMPLEMENTATION--------------------------------------------*/
 int init_server() {
     struct sockaddr_in sock;
     int sock_fd;
@@ -46,8 +56,6 @@ void accept_connection(int sock_fd) {
     struct sockaddr_in client;
     int client_fd;
 
-    pid_t pid;
-
     char ip[16];
     int port;
     int len = sizeof(client);
@@ -67,9 +75,6 @@ void accept_connection(int sock_fd) {
 
     std::cout << "New connection from " << ip << ":" << port << std::endl;
 
-    // Создаем новый поток для обработки клиента и отсоединяем его.
-    // Отсоединенный поток будет работать независимо в фоновом режиме.
-    // std::move(new_client) эффективно передает владение shared_ptr в новый поток.
     std::thread(handle_connection, std::move(new_client)).detach();
 }
 
@@ -102,12 +107,24 @@ void handle_connection(std::shared_ptr<Client> client) {
         std::cout << "  Command: '" << command << "', Path: '" << path << "', Value: '" << value
                   << "'" << std::endl;
 
-        // TODO: Здесь будет логика обработки команд и взаимодействия с деревом...
+        // dprintf(client->client_fd, "\n cmd:\t%s\n path:\t%s\n value:\t%s\n", command.c_str(),
+        //         path.c_str(), value.c_str());
 
-        
+        // TODO: Здесь будет логика обработки команд и взаимодействия с деревом...
+        Callback callback = get_callback(command);
+        if (callback) {
+            callback(client, path, value);
+        } else {
+            dprintf(client->client_fd, "Unknown command: %s\n", command.c_str());
+        }
     }
-    // Закрываем соединение. Это критически важно для освобождения ресурсов.
+
     close(client->client_fd);
+}
+
+int handle_hello(std::shared_ptr<Client> client, std::string path, std::string value) {
+    dprintf(client->client_fd, "Hello from server!\n");
+    return 0;
 }
 
 int main(int argc, char const *argv[]) {

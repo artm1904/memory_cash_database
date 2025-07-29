@@ -33,17 +33,18 @@ int init_server() {
     sock_fd = socket(AF_INET, SOCK_STREAM, 0);  // SOCK_STREAM - use TCP
 
     if (sock_fd < 0) {
-        std::cerr << "Error: Socket doesn't created" << std::endl;
+        std::cerr << "Error: Socket creation failed: " << strerror(errno) << std::endl;
         return -1;
     }
 
     if (bind(sock_fd, (struct sockaddr *)&sock, sizeof(sock)) != 0) {
-        std::cerr << "Error: Bind failed" << std::endl;
+        std::cerr << "Error: Bind failed for " << HOST << ":" << PORT << ": " << strerror(errno)
+                  << std::endl;
         return -1;
     }
 
     if (listen(sock_fd, 20) != 0) {  // How many connections at a time
-        std::cerr << "Error: Failed to prepare to accept connections on socket FD" << std::endl;
+        std::cerr << "Error: Failed to listen on socket: " << strerror(errno) << std::endl;
         return -1;
     }
 
@@ -58,9 +59,9 @@ void accept_connection(int sock_fd) {
 
     char ip[16];
     int port;
-    int len = sizeof(client);
+    socklen_t len = sizeof(client);
 
-    client_fd = accept(sock_fd, (struct sockaddr *)&client, (socklen_t *)&len);
+    client_fd = accept(sock_fd, (struct sockaddr *)&client, &len);
 
     if (client_fd < 0) {
         return;
@@ -68,10 +69,7 @@ void accept_connection(int sock_fd) {
 
     port = ntohs(client.sin_port);
     inet_ntop(AF_INET, &client.sin_addr, ip, sizeof(ip));
-    auto new_client = std::make_shared<Client>();
-    new_client->client_fd = client_fd;
-    new_client->port = port;
-    new_client->ip = ip;
+    auto new_client = std::make_shared<Client>(client_fd, ip, port);
 
     std::cout << "New connection from " << ip << ":" << port << std::endl;
 
@@ -80,14 +78,14 @@ void accept_connection(int sock_fd) {
 
 void handle_connection(std::shared_ptr<Client> client) {
     char buffer[256];
-    dprintf(client->client_fd, "100 Connected to server\n");
+    client->send("100 Connected to server\n");
     while (true) {
         memset(buffer, 0, sizeof(buffer));
-        ssize_t bytes_read = read(client->client_fd, buffer, sizeof(buffer) - 1);
+        ssize_t bytes_read = read(client->get_fd(), buffer, sizeof(buffer) - 1);
 
         if (bytes_read <= 0) {
-            std::cout << "Client " << client->ip << ":" << client->port << " disconnected."
-                      << std::endl;
+            std::cout << "Client " << client->get_ip() << ":" << client->get_port()
+                      << " disconnected." << std::endl;
             break;
         }
 
@@ -115,31 +113,29 @@ void handle_connection(std::shared_ptr<Client> client) {
         if (callback) {
             callback(client, path, value);
         } else {
-            dprintf(client->client_fd, "Unknown command: %s\n", command.c_str());
+            client->send("Unknown command: " + command + "\n");
         }
     }
-
-    close(client->client_fd);
 }
 
 int handle_hello(std::shared_ptr<Client> client, std::string path, std::string value) {
-    dprintf(client->client_fd, "Hello from server!\n");
+    client->send("Hello from server!\n");
     return 0;
 }
 
-int main(int argc, char const *argv[]) {
-    int sock_fd;
-    server_continue = true;
-    sock_fd = init_server();
-    if (sock_fd < 0) {
-        std::cerr << "Failed to init server" << std::endl;
-        return -1;
-    }
-    while (server_continue) {
-        accept_connection(sock_fd);
-    }
+// int main(int argc, char const *argv[]) {
+//     int sock_fd;
+//     server_continue = true;
+//     sock_fd = init_server();
+//     if (sock_fd < 0) {
+//         std::cerr << "Failed to init server" << std::endl;
+//         return -1;
+//     }
+//     while (server_continue) {
+//         accept_connection(sock_fd);
+//     }
 
-    std::cout << "Server stopped" << std::endl;
-    close(sock_fd);
-    return 0;
-}
+//     std::cout << "Server stopped" << std::endl;
+//     close(sock_fd);
+//     return 0;
+// }

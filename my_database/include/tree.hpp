@@ -18,18 +18,15 @@ inline constexpr Tag operator|(Tag a, Tag b) {
 }
 
 /*
-The binary tree stracture is this:
+The common view tree stracture is this:
 
                 / (root node)
-
-                    /User (level 1 node)
-                    --------/User/Bob (leaf lvl1)
-                    --------/User/Mark
-                    --------/User/Kate
-                        /User/Login (level 2 node)
-                        --------/User/Bob/bob19066 (leaf lvl2)
-                        --------/User/Mark/mark34355
-                        --------/User/Kate/lol1111
+                ├── /Users
+                │   ├── /Users/Login
+                │   │   ├── /Users/Login/bob (лист)
+                │   │   └── /Users/Login/kate (лист)
+                │   └── /Users/Password
+                └── /Shops
 
 */
 

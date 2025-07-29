@@ -1,14 +1,6 @@
 #include "tree.hpp"
 
-/**
- * @brief Создает корневой узел для дерева.
- *
- * Эта фабричная функция создает корневой узел, по указанному пути. Она
- * гарантирует, что узел выделяется в куче и управляется std::unique_ptr, а все
- * члены инициализируются осмысленным состоянием по умолчанию.
- *
- * @return std::shared_ptr<Node>, владеющий указатель на созданный узел.
- */
+
 std::shared_ptr<Node> create_root_node() {
     auto root = std::make_shared<Node>();
     root->tag = Tag::Root | Tag::Node;
@@ -17,18 +9,7 @@ std::shared_ptr<Node> create_root_node() {
     return root;
 }
 
-/**
- * @brief Создает новый узел для дерева.
- *
- * Эта фабричная функция создает новый узел оносительно корневого, по
- * указанному пути. Она гарантирует, что узел выделяется в куче и управляется
- * std::unique_ptr, а все члены инициализируются осмысленным состоянием по
- * умолчанию.
- *
- * @param parent Родительский узел.
- * @param path Путь для нового узла.
- * @return std::shared_ptr<Node>, владеющий указатель на новый узел.
- */
+
 std::shared_ptr<Node> create_node(const std::shared_ptr<Node> &parent, std::string path) {
     assert(parent != nullptr && "Parent node cannot be null");
     assert(!path.empty() && "Node path cannot be empty");
@@ -42,13 +23,7 @@ std::shared_ptr<Node> create_node(const std::shared_ptr<Node> &parent, std::stri
     return new_node;
 }
 
-/**
- * @brief Находит последний лист в двухсвязанном списке, начинающемся с
- * parent->east.
- * @param parent Родительский узел, чьи листья нужно проверить.
- * @return std::shared_ptr<Leaf> на последний лист или nullptr, если листьев
- * нет.
- */
+
 std::shared_ptr<Leaf> find_last_linear(const std::shared_ptr<Node> &parent) {
     assert(parent != nullptr && "Parent node cannot be null");
     if (!parent->east) {
@@ -61,14 +36,7 @@ std::shared_ptr<Leaf> find_last_linear(const std::shared_ptr<Node> &parent) {
     return current_leaf;
 }
 
-/**
- * @brief Создает новый лист (файл) и присоединяет его к родительскому узлу.
- *
- * @param parent Родительский узел (каталог), к которому добавляется лист.
- * @param path Имя листа (файла).
- * @param value Данные, которые будет хранить лист.
- * @return std::shared_ptr<Leaf>, владеющий указатель на новый лист.
- */
+
 std::shared_ptr<Leaf> create_leaf(const std::shared_ptr<Node> &parent, std::string path,
                                   std::string value) {
     assert(parent != nullptr && "Parent node cannot be null");

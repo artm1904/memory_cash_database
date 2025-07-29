@@ -1,5 +1,10 @@
 #include "server.hpp"
 
+#include <string.h>  // For strcspn
+#include <thread>    // Для std::thread
+ 
+#include <cstring>  // For memset
+#include <sstream>  // For std::stringstream
 bool server_continue;
 bool child_continue;
 
@@ -7,28 +12,28 @@ int init_server() {
     struct sockaddr_in sock;
     int sock_fd;
 
+    sock.sin_family = AF_INET;  // Use Address Family: Ineternet - IPv4
     /*
      To conver in proper network byte order (little-endian vs. big-endian) use htons() and
      inet_addr() func
     */
-    sock.sin_family = AF_INET;  // Use Address Family: Ineternet - IPv4
     sock.sin_port = htons(PORT);
     sock.sin_addr.s_addr = inet_addr(HOST);
 
     sock_fd = socket(AF_INET, SOCK_STREAM, 0);  // SOCK_STREAM - use TCP
 
     if (sock_fd < 0) {
-        std::cerr << "Socket doesn't created" << std::endl;
+        std::cerr << "Error: Socket doesn't created" << std::endl;
         return -1;
     }
 
     if (bind(sock_fd, (struct sockaddr *)&sock, sizeof(sock)) != 0) {
-        std::cerr << "Bind failed" << std::endl;
+        std::cerr << "Error: Bind failed" << std::endl;
         return -1;
     }
 
     if (listen(sock_fd, 20) != 0) {  // How many connections at a time
-        std::cerr << "Failed to prepare to accept connections on socket FD" << std::endl;
+        std::cerr << "Error: Failed to prepare to accept connections on socket FD" << std::endl;
         return -1;
     }
 
@@ -62,26 +67,47 @@ void accept_connection(int sock_fd) {
 
     std::cout << "New connection from " << ip << ":" << port << std::endl;
 
-    pid = fork();
-    if (pid != 0) {
-        return;
-    } else {
-        child_continue = true;
-        dprintf(client_fd, "100 Connected to server\n");
-
-        while (child_continue) {
-            child_loop(new_client);
-        }
-
-        close(client_fd);
-        return;
-    }
+    // Создаем новый поток для обработки клиента и отсоединяем его.
+    // Отсоединенный поток будет работать независимо в фоновом режиме.
+    // std::move(new_client) эффективно передает владение shared_ptr в новый поток.
+    std::thread(handle_connection, std::move(new_client)).detach();
 }
 
-void child_loop(std::shared_ptr<Client> client) {
-    sleep(1000);
-    child_continue = false;
-    return;
+void handle_connection(std::shared_ptr<Client> client) {
+    char buffer[256];
+    dprintf(client->client_fd, "100 Connected to server\n");
+    while (true) {
+        memset(buffer, 0, sizeof(buffer));
+        ssize_t bytes_read = read(client->client_fd, buffer, sizeof(buffer) - 1);
+
+        if (bytes_read <= 0) {
+            std::cout << "Client " << client->ip << ":" << client->port << " disconnected."
+                      << std::endl;
+            break;
+        }
+
+        buffer[strcspn(buffer, "\r\n")] = 0;
+
+        std::stringstream ss(buffer);
+        std::string command, path, value;
+
+        ss >> command >> path;
+
+        std::getline(ss, value);
+
+        if (!value.empty() && value.front() == ' ') {
+            value.erase(0, 1);
+        }
+
+        std::cout << "  Command: '" << command << "', Path: '" << path << "', Value: '" << value
+                  << "'" << std::endl;
+
+        // TODO: Здесь будет логика обработки команд и взаимодействия с деревом...
+
+        
+    }
+    // Закрываем соединение. Это критически важно для освобождения ресурсов.
+    close(client->client_fd);
 }
 
 int main(int argc, char const *argv[]) {

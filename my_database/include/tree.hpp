@@ -42,7 +42,7 @@ using Leaf = struct s_leaf;
 struct s_node {
     Tag tag;
     std::weak_ptr<s_node> parent;  // To prevent cycles of owning
-    std::shared_ptr<s_node> west;
+    std::vector<std::shared_ptr<s_node>> childs;
     std::shared_ptr<s_leaf> east;
     std::string path;
 };
@@ -103,3 +103,6 @@ std::shared_ptr<Leaf> find_last_linear(const std::shared_ptr<Node> &parent);
  */
 std::shared_ptr<Leaf> create_leaf(const std::shared_ptr<Node> &parent, std::string path,
                                   std::string value);
+
+
+void print_tree(const std::shared_ptr<Node> &root);

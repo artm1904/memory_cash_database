@@ -1,6 +1,5 @@
 #include "tree.hpp"
 
-
 std::shared_ptr<Node> create_root_node() {
     auto root = std::make_shared<Node>();
     root->tag = Tag::Root | Tag::Node;
@@ -8,7 +7,6 @@ std::shared_ptr<Node> create_root_node() {
     // Дочерние указатели по умолчанию равны nullptr в std::unique_ptr
     return root;
 }
-
 
 std::shared_ptr<Node> create_node(const std::shared_ptr<Node> &parent, std::string path) {
     assert(parent != nullptr && "Parent node cannot be null");
@@ -19,10 +17,9 @@ std::shared_ptr<Node> create_node(const std::shared_ptr<Node> &parent, std::stri
     new_node->path = std::move(path);
     new_node->parent = parent;
 
-    parent->west = new_node;
+    parent->childs.push_back(new_node);
     return new_node;
 }
-
 
 std::shared_ptr<Leaf> find_last_linear(const std::shared_ptr<Node> &parent) {
     assert(parent != nullptr && "Parent node cannot be null");
@@ -35,7 +32,6 @@ std::shared_ptr<Leaf> find_last_linear(const std::shared_ptr<Node> &parent) {
     }
     return current_leaf;
 }
-
 
 std::shared_ptr<Leaf> create_leaf(const std::shared_ptr<Node> &parent, std::string path,
                                   std::string value) {
@@ -57,32 +53,53 @@ std::shared_ptr<Leaf> create_leaf(const std::shared_ptr<Node> &parent, std::stri
 
     return new_leaf;
 }
+void print_tree(const std::shared_ptr<Leaf> &leaf) {
+    if (!leaf) {
+        return;
+    }
 
-// int main() {
-//     auto root = create_root_node();
-//     std::cout << "Корневой узел создан по адресу: " << root.get() << std::endl;
-//     std::cout << "Путь корневого узла: " << root->path << std::endl;
+    std::cout << leaf->path << std::endl;
 
-//     auto users_node = create_node(root, "/Users");
-//     std::cout << "Создан дочерний узел '" << users_node->path << "'" << std::endl;
+    if (leaf->east) {
+        print_tree(leaf->east);
+    }
+}
 
-//     // Безопасный доступ к родительскому узлу через weak_ptr
-//     if (auto parent_ptr = users_node->parent.lock()) {
-//         // Этот блок выполнится, только если родительский узел все еще существует
-//         std::cout << "Родительский узел: " << parent_ptr->path << std::endl;
-//     } else {
-//         std::cout << "Родительский узел был удален." << std::endl;
-//     }
+void print_tree_helper(const std::shared_ptr<Node> &node, int indent) {
+    if (!node) {
+        return;
+    }
 
-//     // Демонстрация добавления листьев
-//     auto bob_leaf = create_leaf(users_node, "bob", "bob_data");
-//     auto kate_leaf = create_leaf(users_node, "kate", "kate_data");
+    for (int i = 0; i < indent; ++i) {
+        std::cout << "  ";  // Отступ для отображения иерархии
+    }
+    std::cout << node->path << std::endl;
 
-//     std::cout << "\nЛистья в узле '" << users_node->path << "':" << std::endl;
-//     auto current_leaf = users_node->east;
-//     while (current_leaf) {
-//         std::cout << "  - " << current_leaf->path << std::endl;
-//         current_leaf = current_leaf->east;
-//     }
-//     return 0;
-// }
+    // Рекурсивно вызываем для дочерних узлов и листьев, увеличивая отступ
+    
+    for(auto child : node->childs){
+        print_tree_helper(child, indent + 1);
+    
+    }
+    if (node->east) {
+        // Для листьев отступ не увеличиваем, так как они находятся на том же уровне
+        print_tree(node->east);
+    }
+}
+
+void print_tree(const std::shared_ptr<Node> &root) { print_tree_helper(root, 0); }
+
+int main() {
+    auto root = create_root_node();
+    auto users_node = create_node(root, "/Users");
+    auto shops_node = create_node(root, "/Shops");
+
+    auto login_node = create_node(users_node, "/Users/Login");
+    auto password_node = create_node(users_node, "/Users/Password");
+
+    auto bob_leaf = create_leaf(login_node, "/Users/Login/bob", "bob_data");
+    auto kate_leaf = create_leaf(login_node, "/Users/Login/kate", "kate_data");
+
+    print_tree(root);
+    return 0;
+}

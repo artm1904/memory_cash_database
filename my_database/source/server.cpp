@@ -1,6 +1,13 @@
 #include "server.hpp"
 
-bool server_continue;
+#include <mutex>
+/*-----------------------------------------STATIC_VARiABLES----------------------------------------------------*/
+
+// Глобальный указатель на корень дерева и мьютекс для защиты доступа к нему.
+static std::shared_ptr<Node> g_root;
+static std::mutex g_tree_mutex;
+
+/*-------------------------------------------HELPER_FUNCTION---------------------------------------------------*/
 
 Callback get_callback(std::string command) {
     Callback callback = nullptr;
@@ -108,12 +115,11 @@ void handle_connection(std::shared_ptr<Client> client) {
         // dprintf(client->client_fd, "\n cmd:\t%s\n path:\t%s\n value:\t%s\n", command.c_str(),
         //         path.c_str(), value.c_str());
 
-        // TODO: Здесь будет логика обработки команд и взаимодействия с деревом...
         Callback callback = get_callback(command);
         if (callback) {
             callback(client, path, value);
         } else {
-            client->send("Unknown command: " + command + "\n");
+            client->send("400 Bad Request: Unknown command '" + command + "'\n");
         }
     }
 }
@@ -123,19 +129,98 @@ int handle_hello(std::shared_ptr<Client> client, std::string path, std::string v
     return 0;
 }
 
-// int main(int argc, char const *argv[]) {
-//     int sock_fd;
-//     server_continue = true;
-//     sock_fd = init_server();
-//     if (sock_fd < 0) {
-//         std::cerr << "Failed to init server" << std::endl;
-//         return -1;
-//     }
-//     while (server_continue) {
-//         accept_connection(sock_fd);
-//     }
+int handle_create_node(std::shared_ptr<Client> client, std::string path, std::string value) {
 
-//     std::cout << "Server stopped" << std::endl;
-//     close(sock_fd);
-//     return 0;
-// }
+    if (path.empty()) {
+        client->send("400 Bad Request: Path is required for CREATE_NODE.\n");
+        return -1;
+    }
+
+    
+    std::lock_guard<std::mutex> lock(g_tree_mutex); //RAII Mutex 
+    if (auto new_node = create_node_by_path(g_root, path)) {
+        client->send("200 OK: Node " + path + " created.\n");
+    } else {
+        
+        client->send("500 Internal Server Error: Failed to create node " + path + ".\n");
+    }
+    return 0;
+}
+
+int handle_create_leaf(std::shared_ptr<Client> client, std::string path, std::string value) {
+    if (path.empty()) {
+        client->send("400 Bad Request: Path is required for CREATE_LEAF.\n");
+        return -1;
+    }
+
+    std::lock_guard<std::mutex> lock(g_tree_mutex);
+    if (auto new_leaf = create_leaf_by_path(g_root, path, value)) {
+        client->send("200 OK: Leaf " + path + " created.\n");
+    } else {
+        client->send("500 Internal Server Error: Failed to create leaf " + path + ".\n");
+    }
+    return 0;
+}
+
+int handle_delete_node(std::shared_ptr<Client> client, std::string path, std::string value) {
+    (void)value;
+    if (path.empty() || path == "/") {
+        client->send("400 Bad Request: Path is required and cannot be root for DELETE_NODE.\n");
+        return -1;
+    }
+
+    std::lock_guard<std::mutex> lock(g_tree_mutex);
+    if (delete_node_by_path_linear(g_root, path)) {
+        client->send("200 OK: Node " + path + " deleted.\n");
+    } else {
+        client->send("404 Not Found: Failed to delete node " + path + ".\n");
+    }
+    return 0;
+}
+
+int handle_delete_leaf(std::shared_ptr<Client> client, std::string path, std::string value) {
+    (void)value;
+    if (path.empty()) {
+        client->send("400 Bad Request: Path is required for DELETE_LEAF.\n");
+        return -1;
+    }
+
+    std::lock_guard<std::mutex> lock(g_tree_mutex);
+    if (delete_leaf_by_path_linear(g_root, path)) {
+        client->send("200 OK: Leaf " + path + " deleted.\n");
+    } else {
+        client->send("404 Not Found: Failed to delete leaf " + path + ".\n");
+    }
+    return 0;
+}
+
+std::vector<CommandHandler> commands_handlers = {{"hello", handle_hello},
+                                                 {"CREATE_NODE", handle_create_node},
+                                                 {"CREATE_LEAF", handle_create_leaf},
+                                                 {"DELETE_NODE", handle_delete_node},
+                                                 {"DELETE_LEAF", handle_delete_leaf}};
+
+int main(int argc, char const *argv[]) {
+    (void)argc;
+    (void)argv;
+
+    g_root = create_root_node();
+    std::cout << "Data tree initialized." << std::endl;
+
+    // Демонстрационное наполнение дерева
+    create_node_by_path(g_root, "/Users");
+    create_leaf_by_path(g_root, "/Users/readme", "This is a user directory.");
+
+    int sock_fd = init_server();
+    if (sock_fd < 0) {
+        std::cerr << "Failed to init server" << std::endl;
+        return -1;
+    }
+    while (true) {
+        accept_connection(sock_fd);
+    }
+
+    std::cout << "Server stopped" << std::endl;
+    close(sock_fd);
+    return 0;
+}

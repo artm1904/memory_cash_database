@@ -13,6 +13,8 @@
 #include <thread>   // For std::thread
 #include <vector>
 
+#include "tree.hpp"
+
 #define PORT 12004
 // #define HOST "127.0.0.1"
 #define HOST "192.168.31.28"
@@ -72,22 +74,27 @@ using CommandHandler = struct s_command_handler;
 int init_server();
 
 /**
- * @brief Принимает новое соединение и создает дочерний процесс для его обработки.
+ * @brief Принимает новое соединение и создает новый поток для его обработки.
  * @details Блокируется до тех пор, пока не появится новое клиентское соединение.
- * После принятия создает дочерний процесс с помощью fork() для обработки клиента,
- * в то время как родительский процесс продолжает слушать новые соединения.
+ * После принятия создает новый поток с помощью std::thread и отсоединяет его .detach() для
+ * обработки клиента, в то время как основной поток продолжает слушать новые соединения и не ожидает
+ * окончания работы клиентского потока.
  * @param sock_fd Файловый дескриптор слушающего сокета.
  */
 void accept_connection(int sock_fd);
 
 /**
  * @brief Основной цикл обработки команд от одного клиента.
- * @details Эта функция выполняется в дочернем процессе. Она должна читать
+ * @details Эта функция выполняется клиентском потоке. Она должна читать
  * команды из сокета клиента, обрабатывать их и отправлять ответы.
  * @param client Умный указатель на структуру с информацией о клиенте.
  */
 void handle_connection(std::shared_ptr<Client> client);
 
 int handle_hello(std::shared_ptr<Client> client, std::string path, std::string value);
+int handle_create_node(std::shared_ptr<Client> client, std::string path, std::string value);
+int handle_create_leaf(std::shared_ptr<Client> client, std::string path, std::string value);
+int handle_delete_node(std::shared_ptr<Client> client, std::string path, std::string value);
+int handle_delete_leaf(std::shared_ptr<Client> client, std::string path, std::string value);
 
-std::vector<CommandHandler> commands_handlers = {{"hello", handle_hello}};
+extern std::vector<CommandHandler> commands_handlers;

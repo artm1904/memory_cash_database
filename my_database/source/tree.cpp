@@ -285,69 +285,72 @@ std::shared_ptr<Leaf> create_leaf_by_path(const std::shared_ptr<Node> &root,
     return create_leaf(parent_node, path, value);
 }
 
-int main() {
-    auto root = create_root_node();
-    // В этой реализации поле path хранит полный путь до узла/листа.
-    auto users_node = create_node(root, "/Users");
-    auto shops_node = create_node(root, "/Shops");
+// int main() {
+//     auto root = create_root_node();
+//     // В этой реализации поле path хранит полный путь до узла/листа.
+//     auto users_node = create_node(root, "/Users");
+//     auto shops_node = create_node(root, "/Shops");
 
-    auto login_node = create_node(users_node, "/Users/Login");
-    auto password_node = create_node(users_node, "/Users/Password");
+//     auto login_node = create_node(users_node, "/Users/Login");
+//     auto password_node = create_node(users_node, "/Users/Password");
 
-    auto bob_leaf = create_leaf(login_node, "/Users/Login/bob", "bob_data");
-    auto kate_leaf = create_leaf(login_node, "/Users/Login/kate", "kate_data");
+//     auto bob_leaf = create_leaf(login_node, "/Users/Login/bob", "bob_data");
+//     auto kate_leaf = create_leaf(login_node, "/Users/Login/kate", "kate_data");
 
-    std::cout << "--- Initial Tree ---" << std::endl;
-    print_tree(root);
-    std::cout << "--------------------" << std::endl;
+//     std::cout << "--- Initial Tree ---" << std::endl;
+//     print_tree(root);
+//     std::cout << "--------------------" << std::endl;
 
-    std::cout << "\nSearching for /Users/Login..." << std::endl;
-    auto found_node = find_node_by_path_linear(root, "/Users/Login");
-    if (found_node) {
-        std::cout << "Found node with path: " << found_node->path << std::endl;
-    } else {
-        std::cout << "Node /Users/Login not found." << std::endl;
-    }
+//     std::cout << "\nSearching for /Users/Login..." << std::endl;
+//     auto found_node = find_node_by_path_linear(root, "/Users/Login");
+//     if (found_node) {
+//         std::cout << "Found node with path: " << found_node->path << std::endl;
+//     } else {
+//         std::cout << "Node /Users/Login not found." << std::endl;
+//     }
 
-    std::cout << "\n--- Deleting node /Users/Password ---" << std::endl;
-    if (delete_node_by_path_linear(root, "/Users/Password")) {
-        std::cout << "Node /Users/Password deleted successfully." << std::endl;
-        std::cout << "\n--- Tree after deletion ---" << std::endl;
-        print_tree(root);
-        std::cout << "---------------------------" << std::endl;
-    } else {
-        std::cout << "Failed to delete node /Users/Password." << std::endl;
-    }
+//     std::cout << "\n--- Deleting node /Users/Password ---" << std::endl;
+//     if (delete_node_by_path_linear(root, "/Users/Password")) {
+//         std::cout << "Node /Users/Password deleted successfully." << std::endl;
+//         std::cout << "\n--- Tree after deletion ---" << std::endl;
+//         print_tree(root);
+//         std::cout << "---------------------------" << std::endl;
+//     } else {
+//         std::cout << "Failed to delete node /Users/Password." << std::endl;
+//     }
 
-    std::cout << "\n--- Searching for leaf /Users/Login/bob ---" << std::endl;
-    auto found_leaf = find_leaf_by_path_linear(root, "/Users/Login/bob");
-    if (found_leaf) {
-        std::cout << "Found leaf with path: " << found_leaf->path << ", and value: '"
-                  << found_leaf->value << "'" << std::endl;
-    } else {
-        std::cout << "Leaf /Users/Login/bob not found." << std::endl;
-    }
+//     std::cout << "\n--- Searching for leaf /Users/Login/bob ---" << std::endl;
+//     auto found_leaf = find_leaf_by_path_linear(root, "/Users/Login/bob");
+//     if (found_leaf) {
+//         std::cout << "Found leaf with path: " << found_leaf->path << ", and value: '"
+//                   << found_leaf->value << "'" << std::endl;
+//     } else {
+//         std::cout << "Leaf /Users/Login/bob not found." << std::endl;
+//     }
 
-    std::cout << "\n--- Searching for non-existent leaf ---" << std::endl;
-    if (!find_leaf_by_path_linear(root, "/Users/Login/non_existent")) {
-        std::cout << "Leaf /Users/Login/non_existent correctly not found." << std::endl;
-    }
+//     std::cout << "\n--- Searching for non-existent leaf ---" << std::endl;
+//     if (!find_leaf_by_path_linear(root, "/Users/Login/non_existent")) {
+//         std::cout << "Leaf /Users/Login/non_existent correctly not found." << std::endl;
+//     }
 
-    std::cout << "\n--- Creating new node /Users/Profile ---" << std::endl;
-    if (auto new_node = create_node_by_path(root, "/Users/Profile")) {
-        std::cout << "Node " << new_node->path << " created successfully." << std::endl;
-    } else {
-        std::cout << "Failed to create node /Users/Profile." << std::endl;
-    }
+//     std::cout << "\n--- Creating new node /Users/Profile ---" << std::endl;
+//     if (auto new_node = create_node_by_path(root, "/Users/Profile")) {
+//         std::cout << "Node " << new_node->path << " created successfully." << std::endl;
+//     } else {
+//         std::cout << "Failed to create node /Users/Profile." << std::endl;
+//     }
 
-    std::cout << "\n--- Creating new leaf /Users/Profile/settings ---" << std::endl;
-    if (auto new_leaf = create_leaf_by_path(root, "/Users/Profile/settings", "dark_theme")) {
-        std::cout << "Leaf " << new_leaf->path << " with value '" << new_leaf->value
-                  << "' created successfully." << std::endl;
-    }
+//     std::cout << "\n--- Creating new leaf /Users/Profile/settings ---" << std::endl;
+//     if (auto new_leaf = create_leaf_by_path(root, "/Users/Profile/settings", "dark_theme")) {
+//         std::cout << "Leaf " << new_leaf->path << " with value '" << new_leaf->value
+//                   << "' created successfully." << std::endl;
+//     }
 
-    std::cout << "\n--- Final tree state ---" << std::endl;
-    print_tree(root);
+//     std::cout << "\n--- Final tree state ---" << std::endl;
+//     print_tree(root);
 
-    return 0;
-}
+//     return 0;
+// }
+
+
+

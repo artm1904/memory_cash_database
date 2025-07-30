@@ -188,7 +188,44 @@ std::shared_ptr<Leaf> find_leaf_by_path_linear(const std::shared_ptr<Node> &root
     return nullptr;
 }
 
+bool delete_leaf_by_path_linear(const std::shared_ptr<Node> &root, const std::string &path) {
+    // 1. Находим лист, который нужно удалить.
+    auto leaf_to_delete = find_leaf_by_path_linear(root, path);
+    if (!leaf_to_delete) {
+        std::cerr << "Error: Leaf '" << path << "' not found for deletion." << std::endl;
+        return false;
+    }
 
+    // 2. Получаем указатели на соседние листья.
+    auto prev_leaf = leaf_to_delete->west;
+    auto next_leaf = leaf_to_delete->east;
+
+    // 3. Обновляем связи в двусвязном списке.
+    if (prev_leaf) {
+        // Если есть предыдущий лист, его 'east' теперь указывает на следующий.
+        prev_leaf->east = next_leaf;
+    } else {
+        // Если предыдущего листа нет, значит, удаляемый лист был первым.
+        // Нужно обновить указатель 'east' у родительского узла.
+        if (std::holds_alternative<std::weak_ptr<Node>>(leaf_to_delete->parent)) {
+            auto parent_node = std::get<std::weak_ptr<Node>>(leaf_to_delete->parent).lock();
+            if (parent_node) {
+                parent_node->east = next_leaf;
+            } else {
+                std::cerr << "Consistency Error: Could not lock parent node of a leaf."
+                          << std::endl;
+                return false;
+            }
+        }
+    }
+
+    if (next_leaf) {
+        // Если есть следующий лист, его 'west' теперь указывает на предыдущий.
+        next_leaf->west = prev_leaf;
+    }
+
+    return true;
+}
 
 
 int main() {

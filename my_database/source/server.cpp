@@ -130,18 +130,15 @@ int handle_hello(std::shared_ptr<Client> client, std::string path, std::string v
 }
 
 int handle_create_node(std::shared_ptr<Client> client, std::string path, std::string value) {
-
     if (path.empty()) {
         client->send("400 Bad Request: Path is required for CREATE_NODE.\n");
         return -1;
     }
 
-    
-    std::lock_guard<std::mutex> lock(g_tree_mutex); //RAII Mutex 
+    std::lock_guard<std::mutex> lock(g_tree_mutex);  // RAII Mutex
     if (auto new_node = create_node_by_path(g_root, path)) {
         client->send("200 OK: Node " + path + " created.\n");
     } else {
-        
         client->send("500 Internal Server Error: Failed to create node " + path + ".\n");
     }
     return 0;
@@ -194,11 +191,40 @@ int handle_delete_leaf(std::shared_ptr<Client> client, std::string path, std::st
     return 0;
 }
 
+int handle_print_tree(std::shared_ptr<Client> client, std::string path, std::string value) {
+    if (path.empty()) {
+        client->send("400 Bad Request: Path is required for PRINT_TREE.\n");
+        return -1;
+    }
+
+    if (path != "/") {
+        if (auto node = find_node_by_path_linear(g_root, path)) {
+            client->send("200 OK: Tree at " + path + " is printed.\n");
+            std::stringstream ss;
+            ss << print_tree_string(node);
+            client->send(ss.str());
+            return 0;
+
+        } else {
+            client->send("404 Not Found: Node " + path + " not found.\n");
+            return -1;
+        }
+    } else {
+        client->send("200 OK: Tree at " + path + " is printed.\n");
+        std::stringstream ss;
+        ss << print_tree_string(g_root);
+        client->send(ss.str());
+        return 0;
+    }
+    return 0;
+}
+
 std::vector<CommandHandler> commands_handlers = {{"hello", handle_hello},
                                                  {"CREATE_NODE", handle_create_node},
                                                  {"CREATE_LEAF", handle_create_leaf},
                                                  {"DELETE_NODE", handle_delete_node},
-                                                 {"DELETE_LEAF", handle_delete_leaf}};
+                                                 {"DELETE_LEAF", handle_delete_leaf},
+                                                 {"PRINT_TREE", handle_print_tree}};
 
 int main(int argc, char const *argv[]) {
     (void)argc;

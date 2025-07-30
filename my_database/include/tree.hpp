@@ -4,6 +4,7 @@
 #include <cassert>
 #include <iostream>
 #include <memory>
+#include <sstream>  // For std::stringstream
 #include <string>
 #include <variant>
 #include <vector>
@@ -100,7 +101,13 @@ std::shared_ptr<Leaf> find_last_linear(const std::shared_ptr<Node> &parent);
 std::shared_ptr<Leaf> create_leaf(const std::shared_ptr<Node> &parent, std::string path,
                                   std::string value);
 
+/**
+ * @brief Выводит дерево в консоль.
+ *
+ */
 void print_tree(const std::shared_ptr<Node> &root);
+
+std::string print_tree_string(const std::shared_ptr<Node> &root);
 
 std::shared_ptr<Node> find_node_by_path_linear(const std::shared_ptr<Node> &root,
                                                const std::string &path);

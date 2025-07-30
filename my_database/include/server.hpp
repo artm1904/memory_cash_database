@@ -96,5 +96,6 @@ int handle_create_node(std::shared_ptr<Client> client, std::string path, std::st
 int handle_create_leaf(std::shared_ptr<Client> client, std::string path, std::string value);
 int handle_delete_node(std::shared_ptr<Client> client, std::string path, std::string value);
 int handle_delete_leaf(std::shared_ptr<Client> client, std::string path, std::string value);
+int handle_print_tree(std::shared_ptr<Client> client, std::string path, std::string value);
 
 extern std::vector<CommandHandler> commands_handlers;

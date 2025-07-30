@@ -136,3 +136,31 @@ std::shared_ptr<Leaf> find_leaf_by_path_linear(const std::shared_ptr<Node> &root
  * @return true, если лист был найден и удален, иначе false.
  */
 bool delete_leaf_by_path_linear(const std::shared_ptr<Node> &root, const std::string &path);
+
+/**
+ * @brief Создает узел по полному пути, если это возможно.
+ *
+ * Проверяет, что родительский узел существует и что узел с таким путем еще не создан.
+ * Может создать новый узел, если родительский уже создан.
+ * Пример: в общем дереве есть только /Users, но мы хотим добавить /Users/Data/Password. Нужно два
+ * раза выполнить создание узла, сначала /Users/Data, потом /Users/Data/Password
+ *
+ * @param root Корневой узел дерева.
+ * @param path Полный путь для нового узла (например, "/Users/NewFolder").
+ * @return std::shared_ptr<Node> на созданный узел или nullptr в случае ошибки.
+ */
+std::shared_ptr<Node> create_node_by_path(const std::shared_ptr<Node> &root,
+                                          const std::string &path);
+
+/**
+ * @brief Создает лист по полному пути, если это возможно.
+ *
+ * Проверяет, что родительский узел существует и что узел/лист с таким путем еще не создан.
+ *
+ * @param root Корневой узел дерева.
+ * @param path Полный путь для нового листа (например, "/Users/Login/new_user").
+ * @param value Значение, которое будет хранить лист.
+ * @return std::shared_ptr<Leaf> на созданный лист или nullptr в случае ошибки.
+ */
+std::shared_ptr<Leaf> create_leaf_by_path(const std::shared_ptr<Node> &root,
+                                          const std::string &path, const std::string &value);

@@ -227,6 +227,63 @@ bool delete_leaf_by_path_linear(const std::shared_ptr<Node> &root, const std::st
     return true;
 }
 
+std::shared_ptr<Node> create_node_by_path(const std::shared_ptr<Node> &root,
+                                          const std::string &path) {
+    if (path.empty() || path == "/" || path.find('/') == std::string::npos || path.back() == '/') {
+        std::cerr << "Error: Invalid path for new node: '" << path << "'" << std::endl;
+        return nullptr;
+    }
+
+    // 1. Проверяем, не существует ли уже узел или лист с таким путем
+    if (find_node_by_path_linear(root, path) || find_leaf_by_path_linear(root, path)) {
+        std::cerr << "Error: Node or leaf with path '" << path << "' already exists." << std::endl;
+        return nullptr;
+    }
+
+    // 2. Определяем путь к родительскому узлу
+    size_t last_slash_pos = path.rfind('/');
+    std::string parent_path = (last_slash_pos == 0) ? "/" : path.substr(0, last_slash_pos);
+
+    // 3. Находим родительский узел
+    auto parent_node = find_node_by_path_linear(root, parent_path);
+    if (!parent_node) {
+        std::cerr << "Error: Parent node '" << parent_path << "' not found. Cannot create node '"
+                  << path << "'." << std::endl;
+        return nullptr;
+    }
+
+    // 4. Если все проверки пройдены, создаем новый узел
+    return create_node(parent_node, path);
+}
+
+std::shared_ptr<Leaf> create_leaf_by_path(const std::shared_ptr<Node> &root,
+                                          const std::string &path, const std::string &value) {
+    if (path.empty() || path == "/" || path.find('/') == std::string::npos || path.back() == '/') {
+        std::cerr << "Error: Invalid path for new leaf: '" << path << "'" << std::endl;
+        return nullptr;
+    }
+
+    // 1. Проверяем, не существует ли уже узел или лист с таким путем
+    if (find_node_by_path_linear(root, path) || find_leaf_by_path_linear(root, path)) {
+        std::cerr << "Error: Node or leaf with path '" << path << "' already exists." << std::endl;
+        return nullptr;
+    }
+
+    // 2. Определяем путь к родительскому узлу
+    size_t last_slash_pos = path.rfind('/');
+    std::string parent_path = (last_slash_pos == 0) ? "/" : path.substr(0, last_slash_pos);
+
+    // 3. Находим родительский узел
+    auto parent_node = find_node_by_path_linear(root, parent_path);
+    if (!parent_node) {
+        std::cerr << "Error: Parent node '" << parent_path << "' not found. Cannot create leaf '"
+                  << path << "'." << std::endl;
+        return nullptr;
+    }
+
+    // 4. Если все проверки пройдены, создаем новый лист
+    return create_leaf(parent_node, path, value);
+}
 
 int main() {
     auto root = create_root_node();
@@ -275,6 +332,22 @@ int main() {
     if (!find_leaf_by_path_linear(root, "/Users/Login/non_existent")) {
         std::cout << "Leaf /Users/Login/non_existent correctly not found." << std::endl;
     }
+
+    std::cout << "\n--- Creating new node /Users/Profile ---" << std::endl;
+    if (auto new_node = create_node_by_path(root, "/Users/Profile")) {
+        std::cout << "Node " << new_node->path << " created successfully." << std::endl;
+    } else {
+        std::cout << "Failed to create node /Users/Profile." << std::endl;
+    }
+
+    std::cout << "\n--- Creating new leaf /Users/Profile/settings ---" << std::endl;
+    if (auto new_leaf = create_leaf_by_path(root, "/Users/Profile/settings", "dark_theme")) {
+        std::cout << "Leaf " << new_leaf->path << " with value '" << new_leaf->value
+                  << "' created successfully." << std::endl;
+    }
+
+    std::cout << "\n--- Final tree state ---" << std::endl;
+    print_tree(root);
 
     return 0;
 }

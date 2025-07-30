@@ -128,6 +128,36 @@ std::shared_ptr<Node> find_node_by_path_linear(const std::shared_ptr<Node> &root
     return find_node_recursive(root, path);
 }
 
+bool delete_node_by_path_linear(const std::shared_ptr<Node> &root, const std::string &path) {
+    if (path == "/") {
+        std::cerr << "Error: Cannot delete the root node." << std::endl;
+        return false;
+    }
+
+    auto node_to_delete = find_node_by_path_linear(root, path);
+    if (!node_to_delete) {
+        std::cerr << "Error: Node '" << path << "' not found for deletion." << std::endl;
+        return false;
+    }
+
+    // 2. Получаем родителя этого узла.
+    auto parent_node = node_to_delete->parent.lock();
+
+    // 3. Удаляем узел из списка дочерних элементов родителя.
+    // Используем идиому erase-remove для эффективного удаления.
+    auto &children = parent_node->childs;
+    auto it = std::remove(children.begin(), children.end(), node_to_delete);
+
+    if (it == children.end()) {
+        std::cerr << "Consistency Error: Node found but not in parent's child list." << std::endl;
+        return false;
+    }
+
+    children.erase(it, children.end());
+    return true;
+}
+
+
 
 
 int main() {
@@ -154,6 +184,17 @@ int main() {
         std::cout << "Node /Users/Login not found." << std::endl;
     }
 
+    std::cout << "\n--- Deleting node /Users/Password ---" << std::endl;
+    if (delete_node_by_path_linear(root, "/Users/Password")) {
+        std::cout << "Node /Users/Password deleted successfully." << std::endl;
+        std::cout << "\n--- Tree after deletion ---" << std::endl;
+        print_tree(root);
+        std::cout << "---------------------------" << std::endl;
+    } else {
+        std::cout << "Failed to delete node /Users/Password." << std::endl;
+    }
+
+   
 
     return 0;
 }

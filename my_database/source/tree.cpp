@@ -120,6 +120,14 @@ std::shared_ptr<Leaf> create_leaf(const std::shared_ptr<Node> &parent, std::stri
 
 void print_tree(const std::shared_ptr<Node> &root) { print_tree_helper(root, 0); }
 
+std::shared_ptr<Node> find_node_by_path_linear(const std::shared_ptr<Node> &root,
+                                               const std::string &path) {
+    if (!root || path.empty()) {
+        return nullptr;
+    }
+    return find_node_recursive(root, path);
+}
+
 
 
 int main() {
@@ -136,6 +144,15 @@ int main() {
 
     std::cout << "--- Initial Tree ---" << std::endl;
     print_tree(root);
+    std::cout << "--------------------" << std::endl;
+
+    std::cout << "\nSearching for /Users/Login..." << std::endl;
+    auto found_node = find_node_by_path_linear(root, "/Users/Login");
+    if (found_node) {
+        std::cout << "Found node with path: " << found_node->path << std::endl;
+    } else {
+        std::cout << "Node /Users/Login not found." << std::endl;
+    }
 
 
     return 0;

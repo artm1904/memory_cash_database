@@ -157,6 +157,37 @@ bool delete_node_by_path_linear(const std::shared_ptr<Node> &root, const std::st
     return true;
 }
 
+std::shared_ptr<Leaf> find_leaf_by_path_linear(const std::shared_ptr<Node> &root,
+                                               const std::string &path) {
+    if (!root || path.empty() || path == "/" || path.find('/') == std::string::npos) {
+        // Путь не может быть пустым, корневым или не содержать '/'
+        return nullptr;
+    }
+
+    // 1. Определяем путь к родительскому узлу
+    size_t last_slash_pos = path.rfind('/');
+    std::string parent_path = (last_slash_pos == 0) ? "/" : path.substr(0, last_slash_pos);
+
+    // 2. Находим родительский узел
+    auto parent_node = find_node_by_path_linear(root, parent_path);
+    if (!parent_node) {
+        // Родитель не найден, значит и листа быть не может
+        return nullptr;
+    }
+
+    // 3. Ищем лист в связанном списке родителя
+    auto current_leaf = parent_node->east;
+    while (current_leaf) {
+        if (current_leaf->path == path) {
+            return current_leaf;  // Нашли!
+        }
+        current_leaf = current_leaf->east;
+    }
+
+    // Лист не найден в списке родителя
+    return nullptr;
+}
+
 
 
 
@@ -194,7 +225,19 @@ int main() {
         std::cout << "Failed to delete node /Users/Password." << std::endl;
     }
 
-   
+    std::cout << "\n--- Searching for leaf /Users/Login/bob ---" << std::endl;
+    auto found_leaf = find_leaf_by_path_linear(root, "/Users/Login/bob");
+    if (found_leaf) {
+        std::cout << "Found leaf with path: " << found_leaf->path << ", and value: '"
+                  << found_leaf->value << "'" << std::endl;
+    } else {
+        std::cout << "Leaf /Users/Login/bob not found." << std::endl;
+    }
+
+    std::cout << "\n--- Searching for non-existent leaf ---" << std::endl;
+    if (!find_leaf_by_path_linear(root, "/Users/Login/non_existent")) {
+        std::cout << "Leaf /Users/Login/non_existent correctly not found." << std::endl;
+    }
 
     return 0;
 }

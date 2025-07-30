@@ -1,10 +1,74 @@
 #include "tree.hpp"
 
+void print_tree(const std::shared_ptr<Leaf> &leaf, int indent) {
+    if (!leaf) {
+        return;
+    }
+
+    for (int i = 0; i < indent; ++i) {
+        std::cout << "  ";  // Отступ для отображения иерархии
+    }
+
+    std::cout << leaf->path << std::endl;
+
+    if (leaf->east) {
+        print_tree(leaf->east, indent);
+    }
+}
+
+void print_tree_helper(const std::shared_ptr<Node> &node, int indent) {
+    if (!node) {
+        return;
+    }
+
+    for (int i = 0; i < indent; ++i) {
+        std::cout << "  ";  // Отступ для отображения иерархии
+    }
+    std::cout << node->path << std::endl;
+
+    // Рекурсивно вызываем для дочерних узлов и листьев, увеличивая отступ
+
+    for (auto child : node->childs) {
+        print_tree_helper(child, indent + 1);
+    }
+    if (node->east) {
+        // Для листьев отступ не увеличиваем, так как они находятся на том же уровне
+        print_tree(node->east, indent + 1);
+    }
+}
+
+// Рекурсивная вспомогательная функция для поиска узла по полному пути.
+static std::shared_ptr<Node> find_node_recursive(const std::shared_ptr<Node> &current_node,
+                                                 const std::string &path) {
+    if (!current_node) {
+        return nullptr;
+    }
+
+    // 1. Проверяем, является ли текущий узел искомым.
+    if (current_node->path == path) {
+        return current_node;
+    }
+
+    // 2. Если нет, рекурсивно ищем во всех дочерних узлах.
+    for (const auto &child : current_node->childs) {
+        auto found = find_node_recursive(child, path);
+        if (found) {
+            // Если нашли в дочернем поддереве, возвращаем результат.
+            return found;
+        }
+    }
+
+    // 3. Если не нашли ни в текущем узле, ни в его поддеревьях.
+    return nullptr;
+}
+
+/*------------------------------------HEADER_FUNCTION_IMPLEMENTATION--------------------------------------------*/
+
 std::shared_ptr<Node> create_root_node() {
     auto root = std::make_shared<Node>();
     root->tag = Tag::Root | Tag::Node;
     root->path = "/";
-    // Дочерние указатели по умолчанию равны nullptr в std::unique_ptr
+    // Дочерние указатели по умолчанию равны nullptr в std::shared_ptr
     return root;
 }
 
@@ -53,44 +117,14 @@ std::shared_ptr<Leaf> create_leaf(const std::shared_ptr<Node> &parent, std::stri
 
     return new_leaf;
 }
-void print_tree(const std::shared_ptr<Leaf> &leaf) {
-    if (!leaf) {
-        return;
-    }
-
-    std::cout << leaf->path << std::endl;
-
-    if (leaf->east) {
-        print_tree(leaf->east);
-    }
-}
-
-void print_tree_helper(const std::shared_ptr<Node> &node, int indent) {
-    if (!node) {
-        return;
-    }
-
-    for (int i = 0; i < indent; ++i) {
-        std::cout << "  ";  // Отступ для отображения иерархии
-    }
-    std::cout << node->path << std::endl;
-
-    // Рекурсивно вызываем для дочерних узлов и листьев, увеличивая отступ
-    
-    for(auto child : node->childs){
-        print_tree_helper(child, indent + 1);
-    
-    }
-    if (node->east) {
-        // Для листьев отступ не увеличиваем, так как они находятся на том же уровне
-        print_tree(node->east);
-    }
-}
 
 void print_tree(const std::shared_ptr<Node> &root) { print_tree_helper(root, 0); }
 
+
+
 int main() {
     auto root = create_root_node();
+    // В этой реализации поле path хранит полный путь до узла/листа.
     auto users_node = create_node(root, "/Users");
     auto shops_node = create_node(root, "/Shops");
 
@@ -100,6 +134,9 @@ int main() {
     auto bob_leaf = create_leaf(login_node, "/Users/Login/bob", "bob_data");
     auto kate_leaf = create_leaf(login_node, "/Users/Login/kate", "kate_data");
 
+    std::cout << "--- Initial Tree ---" << std::endl;
     print_tree(root);
+
+
     return 0;
 }

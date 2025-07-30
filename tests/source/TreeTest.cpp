@@ -26,10 +26,10 @@ TEST_F(TreeTest, RootNodeCreation) {
 }
 
 TEST_F(TreeTest, ChildNodeCreation) {
-    auto users_node = create_node(root, "Users");
+    auto users_node = create_node(root, "/Users");
 
     ASSERT_NE(users_node, nullptr);
-    EXPECT_EQ(users_node->path, "Users");
+    EXPECT_EQ(users_node->path, "/Users");
     EXPECT_EQ(static_cast<unsigned char>(users_node->tag), static_cast<unsigned char>(Tag::Node));
 
     // Проверяем связь родитель-потомок
@@ -40,11 +40,11 @@ TEST_F(TreeTest, ChildNodeCreation) {
 }
 
 TEST_F(TreeTest, SingleLeafCreation) {
-    auto users_node = create_node(root, "Users");
-    auto bob_leaf = create_leaf(users_node, "bob", "bob_data");
+    auto users_node = create_node(root, "/Users");
+    auto bob_leaf = create_leaf(users_node, "/Users/bob", "bob_data");
 
     ASSERT_NE(bob_leaf, nullptr);
-    EXPECT_EQ(bob_leaf->path, "bob");
+    EXPECT_EQ(bob_leaf->path, "/Users/bob");
     EXPECT_EQ(bob_leaf->value, "bob_data");
     EXPECT_EQ(static_cast<unsigned char>(bob_leaf->tag), static_cast<unsigned char>(Tag::Leaf));
 
@@ -61,9 +61,9 @@ TEST_F(TreeTest, SingleLeafCreation) {
 }
 
 TEST_F(TreeTest, MultipleLeafCreationAndTraversal) {
-    auto users_node = create_node(root, "Users");
-    auto bob_leaf = create_leaf(users_node, "bob", "bob_data");
-    auto kate_leaf = create_leaf(users_node, "kate", "kate_data");
+    auto users_node = create_node(root, "/Users");
+    auto bob_leaf = create_leaf(users_node, "/Users/bob", "bob_data");
+    auto kate_leaf = create_leaf(users_node, "/Users/kate", "kate_data");
 
     // Проверяем целостность двусвязного списка листьев
     ASSERT_EQ(users_node->east, bob_leaf);

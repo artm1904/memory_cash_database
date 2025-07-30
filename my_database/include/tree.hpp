@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>  // For std::remove
 #include <cassert>
 #include <iostream>
 #include <memory>
@@ -54,7 +55,6 @@ struct s_leaf {
     std::string value;
 };
 
-
 /**
  * @brief Создает корневой узел для дерева.
  *
@@ -66,13 +66,12 @@ struct s_leaf {
  */
 std::shared_ptr<Node> create_root_node();
 
-
 /**
  * @brief Создает новый узел для дерева.
  *
  * Эта фабричная функция создает новый узел оносительно корневого, по
  * указанному пути. Она гарантирует, что узел выделяется в куче и управляется
- * std::unique_ptr, а все члены инициализируются осмысленным состоянием по
+ * std::shared_ptr, а все члены инициализируются осмысленным состоянием по
  * умолчанию.
  *
  * @param parent Родительский узел.
@@ -101,5 +100,39 @@ std::shared_ptr<Leaf> find_last_linear(const std::shared_ptr<Node> &parent);
 std::shared_ptr<Leaf> create_leaf(const std::shared_ptr<Node> &parent, std::string path,
                                   std::string value);
 
-
 void print_tree(const std::shared_ptr<Node> &root);
+
+std::shared_ptr<Node> find_node_by_path_linear(const std::shared_ptr<Node> &root,
+                                               const std::string &path);
+
+/**
+ * @brief Удаляет узел из дерева по его полному пути.
+ *
+ * Эта функция находит узел по его пути и удаляет его из списка
+ * дочерних элементов родителя. Узел и все его поддерево будут автоматически
+ * освобождены благодаря умным указателям, если на них не будет внешних ссылок.
+ *
+ * @param root Корневой узел дерева.
+ * @param path Полный путь удаляемого узла (например, "/Users/Login").
+ * @return true, если узел был найден и удален, иначе false.
+ */
+bool delete_node_by_path_linear(const std::shared_ptr<Node> &root, const std::string &path);
+
+/**
+ * @brief Находит лист в дереве по его полному пути.
+ *
+ * @param root Корневой узел дерева для начала поиска.
+ * @param path Полный путь к листу (например, "/Users/Login/bob").
+ * @return std::shared_ptr<Leaf> на найденный лист или nullptr, если лист не найден.
+ */
+std::shared_ptr<Leaf> find_leaf_by_path_linear(const std::shared_ptr<Node> &root,
+                                               const std::string &path);
+
+/**
+ * @brief Удаляет лист из дерева по его полному пути.
+ *
+ * @param root Корневой узел дерева.
+ * @param path Полный путь удаляемого листа (например, "/Users/Login/bob").
+ * @return true, если лист был найден и удален, иначе false.
+ */
+bool delete_leaf_by_path_linear(const std::shared_ptr<Node> &root, const std::string &path);

@@ -192,29 +192,18 @@ int handle_delete_leaf(std::shared_ptr<Client> client, std::string path, std::st
 }
 
 int handle_print_tree(std::shared_ptr<Client> client, std::string path, std::string value) {
+    (void)value;
     if (path.empty()) {
         client->send("400 Bad Request: Path is required for PRINT_TREE.\n");
         return -1;
     }
 
-    if (path != "/") {
-        if (auto node = find_node_by_path_linear(g_root, path)) {
-            client->send("200 OK: Tree at " + path + " is printed.\n");
-            std::stringstream ss;
-            ss << print_tree_string(node);
-            client->send(ss.str());
-            return 0;
-
-        } else {
-            client->send("404 Not Found: Node " + path + " not found.\n");
-            return -1;
-        }
+    // Блокируем мьютекс на время чтения из дерева для потокобезопасности
+    std::lock_guard<std::mutex> lock(g_tree_mutex);
+    if (auto node = find_node_by_path_linear(g_root, path)) {
+        client->send("200 OK\n" + print_tree_string(node));
     } else {
-        client->send("200 OK: Tree at " + path + " is printed.\n");
-        std::stringstream ss;
-        ss << print_tree_string(g_root);
-        client->send(ss.str());
-        return 0;
+        client->send("404 Not Found: Node " + path + " not found.\n");
     }
     return 0;
 }
@@ -250,3 +239,8 @@ int main(int argc, char const *argv[]) {
     close(sock_fd);
     return 0;
 }
+
+
+
+
+// Как можно улучшить функции `create_..._by_path`, чтобы они возвращали более конкретные коды ошибок, а не просто `nullptr`?

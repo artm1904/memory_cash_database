@@ -1,40 +1,5 @@
 #include "tree.hpp"
 
-void print_tree(const std::shared_ptr<Leaf> &leaf, int indent) {
-    if (!leaf) {
-        return;
-    }
-
-    for (int i = 0; i < indent; ++i) {
-        std::cout << "  ";  // Отступ для отображения иерархии
-    }
-
-    std::cout << leaf->path << std::endl;
-
-    if (leaf->east) {
-        print_tree(leaf->east, indent);
-    }
-}
-
-std::string print_tree_string(const std::shared_ptr<Leaf> &leaf, int indent) {
-    if (!leaf) {
-        return "";
-    }
-    std::string str;
-
-    for (int i = 0; i < indent; ++i) {
-        str.append("  ");  // Отступ для отображения иерархии
-    }
-
-    str.append(leaf->path);
-    str.append("\n");
-
-    if (leaf->east) {
-        str.append(print_tree_string(leaf->east, indent));
-    }
-    return str;
-}
-
 void print_tree_helper(const std::shared_ptr<Node> &node, int indent) {
     if (!node) {
         return;
@@ -43,41 +8,47 @@ void print_tree_helper(const std::shared_ptr<Node> &node, int indent) {
     for (int i = 0; i < indent; ++i) {
         std::cout << "  ";  // Отступ для отображения иерархии
     }
-    std::cout << node->path << std::endl;
+    std::cout << "📁 "<< node->path << std::endl;
 
     // Рекурсивно вызываем для дочерних узлов и листьев, увеличивая отступ
 
     for (auto child : node->childs) {
         print_tree_helper(child, indent + 1);
     }
-    if (node->east) {
-        // Для листьев отступ не увеличиваем, так как они находятся на том же уровне
-        print_tree(node->east, indent + 1);
+
+    auto current_leaf = node->east;
+    while (current_leaf) {
+        for (int i = 0; i < indent + 1; ++i) {
+            std::cout << "  ";
+        }
+        std::cout << "🍃 " << current_leaf->path << " (value: '" << current_leaf->value << "')"
+                  << std::endl;
+        current_leaf = current_leaf->east;
     }
 }
 
-std::string print_tree_helper_string(const std::shared_ptr<Node> &node, int indent) {
+// Рекурсивная вспомогательная функция для формирования строкового представления дерева.
+static void print_tree_recursive(std::stringstream &ss, const std::shared_ptr<Node> &node,
+                                 int indent) {
     if (!node) {
-        return "";
+        return;
     }
-    std::string str;
 
-    for (int i = 0; i < indent; ++i) {
-        str.append("  ");  // Отступ для отображения иерархии
-    }
-    str.append(node->path);
-    str.append("\n");
+    // Выводим текущий узел с отступом
+    ss << std::string(indent * 2, ' ') << "📁 " << node->path << "\n";
 
-    // Рекурсивно вызываем для дочерних узлов и листьев, увеличивая отступ
+    // Рекурсивно вызываем для дочерних узлов
+    for (const auto &child : node->childs) {
+        print_tree_recursive(ss, child, indent + 1);
+    }
 
-    for (auto child : node->childs) {
-        str.append(print_tree_helper_string(child, indent + 1));
+    // Итерируемся по листьям текущего узла
+    auto current_leaf = node->east;
+    while (current_leaf) {
+        ss << std::string((indent + 1) * 2, ' ') << "🍃 " << current_leaf->path << " (value: '"
+           << current_leaf->value << "')\n";
+        current_leaf = current_leaf->east;
     }
-    if (node->east) {
-        // Для листьев отступ не увеличиваем, так как они находятся на том же уровне
-        str.append(print_tree_string(node->east, indent + 1));
-    }
-    return str;
 }
 
 // Рекурсивная вспомогательная функция для поиска узла по полному пути.
@@ -164,9 +135,12 @@ std::shared_ptr<Leaf> create_leaf(const std::shared_ptr<Node> &parent, std::stri
 void print_tree(const std::shared_ptr<Node> &root) { print_tree_helper(root, 0); }
 
 std::string print_tree_string(const std::shared_ptr<Node> &root) {
-    std::string str;
-    str = print_tree_helper_string(root, 0);
-    return str;
+    if (!root) {
+        return "";
+    }
+    std::stringstream ss;
+    print_tree_recursive(ss, root, 0);
+    return ss.str();
 }
 
 std::shared_ptr<Node> find_node_by_path_linear(const std::shared_ptr<Node> &root,
@@ -347,7 +321,7 @@ std::shared_ptr<Leaf> create_leaf_by_path(const std::shared_ptr<Node> &root,
 //     auto kate_leaf = create_leaf(login_node, "/Users/Login/kate", "kate_data");
 
 //     std::cout << "--- Initial Tree ---" << std::endl;
-//     //  std::cout << print_tree_string(root);
+//     //std::cout << print_tree_string(root);
 //     print_tree(root);
 //     std::cout << "--------------------" << std::endl;
 
